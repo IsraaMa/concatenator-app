@@ -13,7 +13,7 @@ def concatenate_tables(tables):
 
 def download_table(table, filename="concatenated_table.csv"):
     today_date = datetime.now(tz=pytz.timezone("America/Mexico_City"))
-    file_name = today_date.strftime("%d_%m_%Y_%H:%M:%S") + '.csv'
+    filename = today_date.strftime("tabla_%d_%m_%Y_%H:%M:%S") + '.csv'
     csv_file = table.to_csv(index=False)
     b64 = base64.b64encode(csv_file.encode()).decode()
     href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download Concatenated Table</a>'
