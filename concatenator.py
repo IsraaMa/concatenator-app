@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 import base64
-from datetime import datetime
-import pytz
 
 def concatenate_tables(tables):
     if tables:
@@ -12,11 +10,16 @@ def concatenate_tables(tables):
     return None
 
 def download_table(table, filename="concatenated_table.csv"):
-    today_date = datetime.now(tz=pytz.timezone("America/Mexico_City"))
-    filename = today_date.strftime("tabla_%d_%m_%Y_%H:%M:%S") + '.csv'
     csv_file = table.to_csv(index=False)
     b64 = base64.b64encode(csv_file.encode()).decode()
     href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download Concatenated Table</a>'
+    return href
+
+
+def download_table_clean(table, filename="concatenated_table.csv"):
+    csv_file = table.dropna(axis=1).to_csv(index=False)
+    b64 = base64.b64encode(csv_file.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download Clean Table</a>'
     return href
 
 # Main Streamlit app
@@ -37,7 +40,15 @@ def main():
 
         # Concatenate tables on button click
         if st.button("Concatenate"):
-            tables = [pd.read_excel(file) if file.name.endswith('.xlsx') else pd.read_csv(file) for file in uploaded_files]
+
+            tables = []
+            for file in uploaded_files:
+                if file.name.endswith('.xlsx'):
+                    table = pd.read_excel(file)
+                else:
+                    table = pd.read_csv(file)
+                tables.append(table)
+
             uploaded_tables.extend(tables)
 
             # Display the concatenated table
@@ -48,6 +59,7 @@ def main():
             # Enable download button if tables are concatenated
             if concatenated_table is not None:
                 st.markdown(download_table(concatenated_table), unsafe_allow_html=True)
+                st.markdown(download_table_clean(concatenated_table), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
